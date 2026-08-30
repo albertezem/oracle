@@ -85,11 +85,11 @@ absolute error otherwise):
 | duration | MAE | 0.90 | 0.92 | 0.80 | 0.79 | **0.75** |
 
 ("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.
-All columns above are teacher-forced. `14_full_event_evaluation.ipynb` compares
-naive vs v5 in the **autoregressive** setting (v5 refeeds its own predictions
-down the chain): v5 still wins every field except `result`, where compounding
-drops it to 82.2% — just below the "always success" floor of 82.7%. That
-notebook is also the one pointed at the **test** split for the final evaluation.)
+The numbers above are teacher-forced. `14_full_event_evaluation.ipynb` lays out
+both models × both modes: teacher-forced, v5 beats naive on 7/7 fields;
+autoregressive (v5 refeeds its own predictions), 6/7 — it loses `result`, last
+in the chain, to the "always success" prior (0.822 vs 0.827). That notebook is
+also the one pointed at the **test** split for the final evaluation.)
 
 Headline findings from the evaluation notebooks:
 
