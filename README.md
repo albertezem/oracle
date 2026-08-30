@@ -85,11 +85,29 @@ absolute error otherwise):
 | duration | MAE | 0.90 | 0.92 | 0.80 | 0.79 | **0.75** |
 
 ("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.
-The numbers above are teacher-forced. `14_full_event_evaluation.ipynb` lays out
-both models × both modes: teacher-forced, v5 beats naive on 7/7 fields;
-autoregressive (v5 refeeds its own predictions), 6/7 — it loses `result`, last
-in the chain, to the "always success" prior (0.822 vs 0.827). That notebook is
-also the one pointed at the **test** split for the final evaluation.)
+The numbers above are teacher-forced, on val. `14_full_event_evaluation.ipynb`
+lays out both models × both modes.)
+
+### Test set (held out, evaluated once)
+
+v5 vs the naive baseline on the 38-game test split — the model's dev never
+touched it. Teacher-forced predicts each field given the true earlier fields;
+autoregressive feeds the model its own predictions down the chain.
+
+| field | metric | naive | v5 autoregressive | v5 teacher-forced |
+|---|---|---|---|---|
+| is_home | acc | 0.516 | **0.949** | **0.949** |
+| event | acc | 0.433 | **0.734** | **0.753** |
+| result | acc | 0.824 | 0.821 | **0.881** |
+| start_x | MAE | 20.80 | **6.75** | **6.49** |
+| start_y | MAE | 17.57 | **7.41** | **6.87** |
+| time_elapsed | MAE | 2.23 | **1.45** | **0.93** |
+| duration | MAE | 0.90 | **0.89** | **0.75** |
+
+Test tracks val to within ~0.003 accuracy / ~0.03 MAE on every field — no
+overfitting to the validation split. v5 beats the baseline on 7/7 fields
+teacher-forced and 6/7 autoregressive (losing only `result`, 0.821 vs the
+"always success" floor of 0.824).
 
 Headline findings from the evaluation notebooks:
 
