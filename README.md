@@ -48,11 +48,12 @@ discretized to one token per metre on a 105 × 68 pitch (SPADL's representation)
 | 11 | `11_scaling_laws.ipynb` | data / parameter scaling sweeps |
 | 12 | `12_benchmarking.ipynb` | full-match simulation vs. real score distribution |
 | 13 | `13_naive_baseline.ipynb` | mode / median / marginal-CE floor for every model |
+| 14 | `14_full_event_evaluation.ipynb` | autoregressive vs teacher-forced, baseline vs v5 |
 
 The model notebooks (05, 07–10) each read the split CSVs and are independent of
 one another; 06 depends on 05's checkpoints, and 11–12 use v5's architecture /
-checkpoint. `13` is a zero-information reference point for all of them (numbered
-last only because it was added last).
+checkpoint. `13`–`14` are evaluation add-ons (numbered last only because they
+were added last).
 
 ## The model progression
 
@@ -79,11 +80,14 @@ absolute error otherwise):
 | event | acc | 43.0% | 65.4% | 71.3% | 72.4% | **75.5%** |
 | result | acc | 82.7% | 82.8% | 86.4% | 86.7% | **88.4%** |
 | start_x | MAE | 20.6 | 12.0 | 8.81 | 7.98 | **6.50** |
-| start_y | MAE | 17.6 | 9.6 | 8.71 | 8.06 | **6.89** |
+| start_y | MAE | 17.5 | 9.6 | 8.71 | 8.06 | **6.89** |
 | time_elapsed | MAE | 2.19 | 1.98 | 1.68 | 1.60 | **0.91** |
-| duration | MAE | 1.05 | 0.92 | 0.80 | 0.79 | **0.75** |
+| duration | MAE | 0.90 | 0.92 | 0.80 | 0.79 | **0.75** |
 
-("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.)
+("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.
+All columns are teacher-forced; `14_full_event_evaluation.ipynb` has the
+autoregressive numbers, where v5's `result` accuracy drops ~6 pts and the
+spatial/timing MAEs grow ~4–60% from compounding.)
 
 Headline findings from the evaluation notebooks:
 
