@@ -5,3 +5,7 @@ __pycache__/
 .DS_Store
 data/
 learnings/
+scratch/
+.vscode/
+CLAUDE.md
+Open Data Events v4.0.0.pdf
