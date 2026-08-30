@@ -85,11 +85,11 @@ absolute error otherwise):
 | duration | MAE | 0.90 | 0.92 | 0.80 | 0.79 | **0.75** |
 
 ("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.
-All columns are teacher-forced. `14_full_event_evaluation.ipynb` has the
-autoregressive numbers, where v5 refeeds its own predictions down the chain:
-`result` accuracy drops to 82.2% (below the naive floor), spatial/timing MAEs
-grow ~4–60%, and summed cross-entropy goes 9.57 → 11.24. That notebook is
-also the one pointed at the **test** split for the final evaluation.)
+All columns above are teacher-forced. `14_full_event_evaluation.ipynb` compares
+naive vs v5 in the **autoregressive** setting (v5 refeeds its own predictions
+down the chain): v5 still wins every field except `result`, where compounding
+drops it to 82.2% — just below the "always success" floor of 82.7%. That
+notebook is also the one pointed at the **test** split for the final evaluation.)
 
 Headline findings from the evaluation notebooks:
 
