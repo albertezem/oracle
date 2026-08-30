@@ -91,20 +91,22 @@ lays out both models × both modes.)
 ### Test set (held out, evaluated once)
 
 v5 vs the naive baseline on the 38-game test split — the model's dev never
-touched it. Teacher-forced predicts each field given the true earlier fields;
-autoregressive feeds the model its own predictions down the chain.
+touched it. Two models × two modes: **AR** = autoregressive (the model feeds
+itself its own predictions down the chain), **TF** = teacher-forced (true
+earlier fields given). Bold = better model within a mode.
 
-| field | metric | naive | v5 autoregressive | v5 teacher-forced |
-|---|---|---|---|---|
-| is_home | acc | 0.516 | **0.949** | **0.949** |
-| event | acc | 0.433 | **0.734** | **0.753** |
-| result | acc | 0.824 | 0.821 | **0.881** |
-| start_x | MAE | 20.80 | **6.75** | **6.49** |
-| start_y | MAE | 17.57 | **7.41** | **6.87** |
-| time_elapsed | MAE | 2.23 | **1.45** | **0.93** |
-| duration | MAE | 0.90 | **0.89** | **0.75** |
+| field | metric | naive · AR | v5 · AR | naive · TF | v5 · TF |
+|---|---|---|---|---|---|
+| is_home | acc | 0.516 | **0.949** | 0.516 | **0.949** |
+| event | acc | 0.433 | **0.734** | 0.433 | **0.753** |
+| start_x | MAE | 20.796 | **6.746** | 20.796 | **6.494** |
+| start_y | MAE | 17.574 | **7.407** | 17.574 | **6.866** |
+| time_elapsed | MAE | 2.233 | **1.446** | 2.233 | **0.933** |
+| duration | MAE | 0.900 | **0.887** | 0.900 | **0.753** |
+| result | acc | **0.824** | 0.821 | 0.824 | **0.881** |
 
-Test tracks val to within ~0.003 accuracy / ~0.03 MAE on every field — no
+The two `naive` columns are identical (mode/median ignores context). Test
+tracks val to within ~0.003 accuracy / ~0.03 MAE on every field — no
 overfitting to the validation split. v5 beats the baseline on 7/7 fields
 teacher-forced and 6/7 autoregressive (losing only `result`, 0.821 vs the
 "always success" floor of 0.824).
