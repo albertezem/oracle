@@ -47,10 +47,12 @@ discretized to one token per metre on a 105 × 68 pitch (SPADL's representation)
 | 10 | `10_mlp_v5_embeddings_disjoint_heads.ipynb` | v5 model — **current best** |
 | 11 | `11_scaling_laws.ipynb` | data / parameter scaling sweeps |
 | 12 | `12_benchmarking.ipynb` | full-match simulation vs. real score distribution |
+| 13 | `13_naive_baseline.ipynb` | mode / median / marginal-CE floor for every model |
 
 The model notebooks (05, 07–10) each read the split CSVs and are independent of
 one another; 06 depends on 05's checkpoints, and 11–12 use v5's architecture /
-checkpoint.
+checkpoint. `13` is a zero-information reference point for all of them (numbered
+last only because it was added last).
 
 ## The model progression
 
@@ -71,15 +73,17 @@ Per-field metrics on the validation split, each field predicted given the true
 values of the earlier fields (accuracy for `is_home`/`event`/`result`, mean
 absolute error otherwise):
 
-| field | metric | v1 | v3 | v4 | **v5** |
-|---|---|---|---|---|---|
-| is_home | acc | 80.8% | 94.1% | 94.5% | **95.1%** |
-| event | acc | 65.4% | 71.3% | 72.4% | **75.5%** |
-| result | acc | 82.8% | 86.4% | 86.7% | **88.4%** |
-| start_x | MAE | 12.0 | 8.81 | 7.98 | **6.50** |
-| start_y | MAE | 9.6 | 8.71 | 8.06 | **6.89** |
-| time_elapsed | MAE | 1.98 | 1.68 | 1.60 | **0.91** |
-| duration | MAE | 0.92 | 0.80 | 0.79 | **0.75** |
+| field | metric | naive | v1 | v3 | v4 | **v5** |
+|---|---|---|---|---|---|---|
+| is_home | acc | 51.8% | 80.8% | 94.1% | 94.5% | **95.1%** |
+| event | acc | 43.0% | 65.4% | 71.3% | 72.4% | **75.5%** |
+| result | acc | 82.7% | 82.8% | 86.4% | 86.7% | **88.4%** |
+| start_x | MAE | 20.6 | 12.0 | 8.81 | 7.98 | **6.50** |
+| start_y | MAE | 17.6 | 9.6 | 8.71 | 8.06 | **6.89** |
+| time_elapsed | MAE | 2.19 | 1.98 | 1.68 | 1.60 | **0.91** |
+| duration | MAE | 1.05 | 0.92 | 0.80 | 0.79 | **0.75** |
+
+("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.)
 
 Headline findings from the evaluation notebooks:
 
