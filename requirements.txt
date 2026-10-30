@@ -1,0 +1,21 @@
+# Data loading (00–03)
+statsbombpy
+socceraction
+# socceraction breaks with newer releases of these two
+multimethod<2.0
+pandera==0.17.2
+
+# Core
+pandas
+numpy
+torch
+
+# Plotting (04, 06, 12)
+matplotlib
+seaborn
+mplsoccer
+
+# Notebooks
+jupyter
+ipykernel
+ipywidgets

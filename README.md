@@ -141,4 +141,4 @@ Headline findings from the evaluation notebooks:
 ## Environment
 
 Python 3.12 venv (`uv venv --python 3.12`), then
-`uv pip install socceraction statsbombpy "multimethod<2.0" "pandera==0.17.2" pandas numpy jupyter ipykernel torch`.
+`uv pip install -r requirements.txt`.
