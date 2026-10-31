@@ -61,7 +61,7 @@ were added last).
 |---|---|---|
 | **v1** | 2-layer MLP (`37→80→107`), all 7 fields sharing one 107-wide output vocab, categorical fields as raw scalar codes, `BCEWithLogits` | `torch` autograd |
 | **v2** | deeper (`37→96→96→96→107`), everything else held fixed | `torch` autograd |
-| **v3** | 4-layer, trained longer | **backward pass by hand**, no autograd |
+| **v3** | same net as v2; 500k steps with a stepped lr schedule (v2: 1M steps at a fixed lr) | **backward pass by hand**, no autograd |
 | **v4** | `is_home`/`event`/`result` (+ lags) via embedding tables instead of scalar codes | back to autograd |
 | **v5** | **7 disjoint per-field output heads** (one softmax + cross-entropy each) instead of a shared vocab; continuous fields normalized | autograd |
 
@@ -74,19 +74,22 @@ Per-field metrics on the validation split, each field predicted given the true
 values of the earlier fields (accuracy for `is_home`/`event`/`result`, mean
 absolute error otherwise):
 
-| field | metric | naive | v1 | v3 | v4 | **v5** |
-|---|---|---|---|---|---|---|
-| is_home | acc | 51.8% | 80.8% | 94.1% | 94.5% | **95.1%** |
-| event | acc | 43.0% | 65.4% | 71.3% | 72.4% | **75.5%** |
-| result | acc | 82.7% | 82.8% | 86.4% | 86.7% | **88.4%** |
-| start_x | MAE | 20.6 | 12.0 | 8.81 | 7.98 | **6.50** |
-| start_y | MAE | 17.5 | 9.6 | 8.71 | 8.06 | **6.89** |
-| time_elapsed | MAE | 2.19 | 1.98 | 1.68 | 1.60 | **0.91** |
-| duration | MAE | 0.90 | 0.92 | 0.80 | 0.79 | **0.75** |
+| field | metric | naive | v1 | v2 | v3 | v4 | **v5** |
+|---|---|---|---|---|---|---|---|
+| is_home | acc | 51.8% | 82.3% | 94.2% | 93.9% | 94.5% | **95.0%** |
+| event | acc | 43.0% | 66.1% | 69.8% | 71.0% | 72.4% | **75.5%** |
+| result | acc | 82.7% | 82.7% | 86.6% | 85.6% | 86.7% | **88.4%** |
+| start_x | MAE | 20.6 | 12.26 | 8.62 | 9.00 | 7.98 | **6.49** |
+| start_y | MAE | 17.5 | 10.43 | 8.82 | 9.06 | 8.06 | **6.90** |
+| time_elapsed | MAE | 2.19 | 1.99 | 1.67 | 1.74 | 1.60 | **0.91** |
+| duration | MAE | 0.90 | 0.82 | 0.87 | 0.81 | 0.79 | **0.75** |
 
 ("naive" = always predict the training mode / median — see `13_naive_baseline.ipynb`.
-The numbers above are teacher-forced, on val. `14_full_event_evaluation.ipynb`
-lays out both models × both modes.)
+The numbers above are teacher-forced, on val, from a full re-run of every
+notebook. `14_full_event_evaluation.ipynb` lays out both models × both modes.
+v4 and v5 reproduce to within 0.01 across runs; v1 and v3 drift by up to
+~0.35 MAE / ~1 point accuracy, so treat the v1–v3 gaps as approximate. v3 is
+v2's net with a hand-written backward pass, so it isn't expected to beat it.)
 
 ### Test set (held out, evaluated once)
 
@@ -99,9 +102,9 @@ earlier fields given). Bold = better model within a mode.
 |---|---|---|---|---|---|
 | is_home | acc | 0.516 | **0.949** | 0.516 | **0.949** |
 | event | acc | 0.433 | **0.734** | 0.433 | **0.753** |
-| start_x | MAE | 20.796 | **6.746** | 20.796 | **6.494** |
-| start_y | MAE | 17.574 | **7.407** | 17.574 | **6.866** |
-| time_elapsed | MAE | 2.233 | **1.446** | 2.233 | **0.933** |
+| start_x | MAE | 20.796 | **6.731** | 20.796 | **6.476** |
+| start_y | MAE | 17.574 | **7.410** | 17.574 | **6.870** |
+| time_elapsed | MAE | 2.233 | **1.434** | 2.233 | **0.930** |
 | duration | MAE | 0.900 | **0.887** | 0.900 | **0.753** |
 | result | acc | **0.824** | 0.821 | 0.824 | **0.881** |
 
@@ -109,7 +112,21 @@ The two `naive` columns are identical (mode/median ignores context). Test
 tracks val to within ~0.003 accuracy / ~0.03 MAE on every field — no
 overfitting to the validation split. v5 beats the baseline on 7/7 fields
 teacher-forced and 6/7 autoregressive (losing only `result`, 0.821 vs the
-"always success" floor of 0.824).
+"always success" floor of 0.824). Summed cross-entropy on test: 9.575
+teacher-forced, 11.249 autoregressive (training-marginal baseline: 14.96).
+
+### Scaling (`11_scaling_laws.ipynb`)
+
+v5 architecture, 300k steps per run, final val loss (summed cross-entropy):
+
+| train data | val loss | | hidden layers | params | val loss |
+|---|---|---|---|---|---|
+| 25% | 10.072 | | `[80]` | 33.7k | 11.051 |
+| 50% | 10.042 | | `[96, 96]` | 49.7k | 10.444 |
+| 100% | 10.015 | | `[96, 96, 96]` | 59.0k | 10.015 |
+
+Loss falls with both, but parameters matter far more at this scale: 4× the
+data gains 0.06 nats, going from one hidden layer to three gains 1.04.
 
 Headline findings from the evaluation notebooks:
 
@@ -136,7 +153,10 @@ Headline findings from the evaluation notebooks:
 - Move from MLP to the decoder-only transformer.
 - Add team / player conditioning (the model currently has no identity in its
   inputs, so it can only be benchmarked at the population level).
-- `11_scaling_laws.ipynb` is only partly run.
+- `12_benchmarking.ipynb`'s full-match simulation never generates `full_end`:
+  the match clock runs past 90 minutes without closing the half, so
+  simulations hit the 8,000-event cap and the score-distribution comparison
+  isn't meaningful yet.
 
 ## Environment
 
